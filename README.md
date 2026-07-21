@@ -82,7 +82,8 @@ YojnaDost/
 │   ├── is_eligible.js               — deterministic eligibility rules
 │   ├── mock_schemes.json            — sample scheme data for testing
 │   └── mock_profiles.json           — sample user profiles for testing
-└── docs/                            — (optional) Lean Canvas, project guides, etc.
+└── docs/
+    └── Lean-canvas.pdf              — project Lean Canvas
 ```
 
 ---
