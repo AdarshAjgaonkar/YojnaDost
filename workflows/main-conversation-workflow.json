@@ -1,0 +1,999 @@
+{
+  "name": "Main",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        -208
+      ],
+      "id": "420449b9-6388-40a4-ad89-9780d097d36e",
+      "name": "Telegram Trigger",
+      "webhookId": "5b949040-6f00-4ed6-8983-7129e65cd637",
+      "credentials": {
+        "telegramApi": {
+          "id": "gVvgBH83BxOQqjrO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const chatId =\n$input.first().json.message.chat.id;\nconst text =\n$input.first().json.message.text;\nreturn [{ json: { chat_id: chatId,\nuser_message: text } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        -208
+      ],
+      "id": "badb4e10-f46e-44ec-9a09-2cc6ae9e5b6c",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_URL_HERE",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1825102193,
+          "mode": "list",
+          "cachedResultName": "ConversationHistory",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        656,
+        -304
+      ],
+      "id": "6e3df651-8de6-43de-8bc3-d6baa9c6f91f",
+      "name": "Sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "E4RWTmcckSDcqzUR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8906513a-247a-4551-b427-ad9b2a24ca51",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ready_to_match",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        2224,
+        -208
+      ],
+      "id": "fa744c17-86f5-46dc-848c-86079fdaed21",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_URL_HERE",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1825102193,
+          "mode": "list",
+          "cachedResultName": "ConversationHistory",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Code in JavaScript').first().json.chat_id }}",
+            "role": "assistant",
+            "message": "={{ $('ParseAgentResponse').item.json.message }}",
+            "timestamp": "={{ $now }}",
+            "status": "={{ $('ParseAgentResponse').item.json.status }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2672,
+        -112
+      ],
+      "id": "d2739aef-73b5-40c1-9abb-e9875e1eceb2",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "E4RWTmcckSDcqzUR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2448,
+        -112
+      ],
+      "id": "3e7990e2-c043-4754-8718-c0d357880bad",
+      "name": "FollowUpQuestion",
+      "webhookId": "6846dd00-f008-498e-9848-af8ed7275f25",
+      "credentials": {
+        "telegramApi": {
+          "id": "gVvgBH83BxOQqjrO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_URL_HERE",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1825102193,
+          "mode": "list",
+          "cachedResultName": "ConversationHistory",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Code in JavaScript').first().json.chat_id }}",
+            "role": "assistant",
+            "message": "={{ $('MatchingAgent').item.json.choices[0].message.content }}",
+            "timestamp": "={{ $now }}",
+            "status": "matched"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3344,
+        -208
+      ],
+      "id": "447c6908-8ed5-408a-9d3a-e0a4bae9008a",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "E4RWTmcckSDcqzUR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "YOUR_SHEET_URL_HERE",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Schemes",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2448,
+        -304
+      ],
+      "id": "6500e712-d8de-448b-972f-c8b07abfef4a",
+      "name": "GetAllSchemes",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "E4RWTmcckSDcqzUR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "BEARER YOUR_GROQ_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"llama-3.3-70b-versatile\", max_tokens: 500, temperature: 0.4, messages: $json.messages }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1776,
+        -208
+      ],
+      "id": "c22b17b6-2e2a-449d-9290-fea68a09306c",
+      "name": "AgentBrain"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "BEARER YOUR_GROQ_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"llama-3.3-70b-versatile\", max_tokens: 400, temperature: 0.4, messages: [ { role: \"system\", content: \"You are a matching engine. You receive a user profile and a list of government schemes with eligibility criteria. For each scheme, check EVERY field individually and explicitly before deciding: age range, income cap (the user's income must be LESS THAN OR EQUAL TO the cap), occupation, state, caste category, gender, and disability requirement. A user must satisfy ALL fields to be eligible — do not describe a criterion as 'met' unless you have explicitly verified the number or value against the scheme's requirement. A match on some fields does not override a mismatch on others. Return only schemes the user is eligible for, ranked by relevance, in warm plain conversational language (not JSON), under 150 words, bolding scheme names. Only mention schemes explicitly listed above — never invent scheme names. If no schemes match, say so clearly. For each matched scheme, also tell the user how to apply, including the application link if available.\" }, { role: \"user\", content: \"User profile: \" + JSON.stringify($('ParseAgentResponse').item.json.profile) + \"\\n\\nSchemes: \" + JSON.stringify($json.schemes) } ] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        2896,
+        -304
+      ],
+      "id": "5c65d843-6882-45db-af0a-3d0918d36965",
+      "name": "MatchingAgent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.choices[0].message.content;\n\nfunction extractJson(rawText) {\n  const match = rawText.match(/\\{[\\s\\S]*\\}/);\n  if (!match) return null;\n  try {\n    return JSON.parse(match[0]);\n  } catch (e) {\n    return null;\n  }\n}\n\nconst parsed = extractJson(raw);\n\nif (!parsed) {\n  return [{ \n    json: { \n      status: \"collecting\", \n      message: \"Sorry, could you repeat that?\", \n      chat_id: $('Code in JavaScript').first().json.chat_id \n    } \n  }];\n}\n\nreturn [{ json: { ...parsed, chat_id: $('Code in JavaScript').first().json.chat_id } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        -208
+      ],
+      "id": "f1055111-775c-4033-923a-992b31d47411",
+      "name": "ParseAgentResponse"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Grab your placeholder system prompt (from Day 4-6 of your guide)[cite: 2]\nconst systemPrompt = `Your name is \"YojnaDost\", a friendly AI assistant that helps people in India discover government welfare schemes they qualify for. First introduce yourself. Let the user know what you do.\n\nCollect: age, annual income, occupation, state, caste category, gender, disability status, and ask if they'd like to be notified about new schemes in future. Ask ONE or TWO questions at a time. Warm, simple, respectful tone — no jargon.\n\nWhen you have all the details, respond ONLY with JSON using these EXACT field names, nothing else:\n{\"status\":\"ready_to_match\",\"profile\":{\"age\":number,\"income\":number,\"occupation\":\"string\",\"state\":\"string\",\"caste_category\":\"string\",\"gender\":\"string\",\"disability\":boolean,\"opt_in_notifications\":boolean}}\n\nIf any field wasn't explicitly provided by the user, use these defaults instead of omitting the field: caste_category defaults to \"Any\", gender defaults to \"Any\", disability defaults to false, opt_in_notifications defaults to false.\n\nOtherwise, while still collecting information, respond ONLY with JSON:\n{\"status\":\"collecting\",\"message\":\"your next question or acknowledgment here\"}\n\nNever output anything outside the JSON object. Never rename, abbreviate, or substitute the field names shown above — use exactly: age, income, occupation, state, caste_category, gender, disability, opt_in_notifications.`;\n\n// 2. Initialize the array with the system instruction\nconst messages = [\n  { role: \"system\", content: systemPrompt }\n];\n\n// 3. Retrieve all history rows pulled from the Google Sheets node\nconst isRestartCommand = $('CheckAlreadyMatched').first().json.isRestartCommand;\nconst historyRows = isRestartCommand ? [] : $('Filtering').all();\n\n\n// 4. Loop through the sheet rows and append them to the conversation array\n// Note: This assumes your Sheet columns are named 'sender' (user/assistant) and 'text'\nfor (const row of historyRows) {\n  if (row.json.role && row.json.message) {\n    messages.push({\n      role: row.json.role.trim(), \n      content: String(row.json.message)\n    });\n  }\n}\n\n// 5. Reach back and grab the current incoming user message from your first Code node\n// Replace 'Code' with the exact name of your first extraction node if you renamed it\nconst currentInput = $('Code in JavaScript').first().json; \n\n// 6. Append the fresh user message to the very end of the chain\nmessages.push({\n  role: \"user\",\n  content: String(currentInput.user_message)\n});\n\n// 7. Output the completed array so the HTTP Request node can map it via {{ $json.messages }}\nreturn [{ json: { messages: messages } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        -208
+      ],
+      "id": "b223aaea-29c4-4780-82b4-0c0b01a5f11c",
+      "name": "BuildMessageHistory"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('ParseAgentResponse').item.json.chat_id }}",
+        "text": "={{ $json.choices[0].message.content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3120,
+        -208
+      ],
+      "id": "b94b0ed7-9698-4c58-8b85-c2387d76c610",
+      "name": "SendMatchedSchemes",
+      "webhookId": "410f9d10-75ac-4c40-8639-2735a9c94f1e",
+      "credentials": {
+        "telegramApi": {
+          "id": "gVvgBH83BxOQqjrO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const allRows = $input.all();\nconst targetChatId = String($('Code in JavaScript').first().json.chat_id);\n\nconst matchingRows = allRows.filter(row => \n  String(row.json.chat_id) === targetChatId\n);\n\nif (matchingRows.length === 0) {\n  return [{ json: { chat_id: targetChatId, history: [] } }];\n}\n\nreturn matchingRows;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -304
+      ],
+      "id": "99b5319a-781f-4868-a1a8-224e1dee6a7b",
+      "name": "Filtering"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_URL_HERE",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1825102193,
+          "mode": "list",
+          "cachedResultName": "ConversationHistory",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Code in JavaScript').first().json.chat_id }} ",
+            "role": "user",
+            "message": "={{ $('Code in JavaScript').first().json.user_message }}",
+            "timestamp": "={{ $now }}",
+            "status": "pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        656,
+        -112
+      ],
+      "id": "92bf1127-20d3-40af-b7e2-b304a4ba072e",
+      "name": "AppendUserMessage",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "E4RWTmcckSDcqzUR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const trimmedSchemes = $input.all().map(item => ({\n  scheme_name: item.json.scheme_name,\n  min_age: item.json.min_age,\n  max_age: item.json.max_age,\n  income_cap_annual: item.json.income_cap_annual,\n  occupation_eligible: item.json.occupation_eligible,\n  caste_category: item.json.caste_category,\n  gender_eligible: item.json.gender_eligible,\n  state_eligible: item.json.state_eligible,\n  disability_required: item.json.disability_required,\n  benefits: item.json.benefits,\n  application_process: item.json.application_process,\n  application_link: item.json.application_link\n}));\n\nreturn [{ json: { schemes: trimmedSchemes } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2672,
+        -304
+      ],
+      "id": "9ef980a9-8584-439b-9b6c-354d15ee5a9e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const historyItems = $input.all();\nconst currentMessage = ($('Code in JavaScript').first().json.user_message || \"\").trim().toLowerCase();\nconst isRestartCommand = currentMessage === \"restart\";\n\nconst assistantRows = historyItems.filter(item => \n  item.json.role && item.json.role.trim() === \"assistant\"\n);\n\nconst lastStatus = assistantRows.length > 0 \n  ? assistantRows[assistantRows.length - 1].json.status \n  : null;\n\nconst alreadyMatched = !isRestartCommand && (lastStatus === \"matched\" || lastStatus === \"ready_to_match\");\n\nreturn [{ \n  json: { \n    alreadyMatched, \n    isRestartCommand, \n    chat_id: $('Code in JavaScript').first().json.chat_id \n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        -304
+      ],
+      "id": "6d9e8987-722e-4d87-86c1-5f74e774a828",
+      "name": "CheckAlreadyMatched"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d62211b9-7c1f-45e3-9f16-e11a14d5d9ee",
+              "leftValue": "={{ $json.alreadyMatched }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1328,
+        -304
+      ],
+      "id": "17eed566-8964-4386-bdab-d1026e5a2f4b",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code in JavaScript').first().json.chat_id }}",
+        "text": "Your matched schemes were already shared above! For more details on any of them, please visit the application link provided. Type \"restart\" if you'd like to update your details and get re-matched.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1552,
+        -400
+      ],
+      "id": "c64aec0a-ba48-4ccb-a13c-528600f342cb",
+      "name": "SendAlreadyMatched",
+      "webhookId": "0fe3e679-035a-4fcc-b8fc-3e79ba52aefe",
+      "credentials": {
+        "telegramApi": {
+          "id": "gVvgBH83BxOQqjrO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_URL_HERE",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1918296618,
+          "mode": "list",
+          "cachedResultName": "UserProfiles",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('ParseAgentResponse').item.json.chat_id }}",
+            "age": "={{ $('ParseAgentResponse').item.json.profile.age }}",
+            "income": "={{ $('ParseAgentResponse').item.json.profile.income }}",
+            "occupation": "={{ $('ParseAgentResponse').item.json.profile.occupation }}",
+            "state": "={{ $('ParseAgentResponse').item.json.profile.state }}",
+            "caste_category": "={{ $('ParseAgentResponse').item.json.profile.caste_category }}",
+            "gender": "={{ $('ParseAgentResponse').item.json.profile.gender }}",
+            "disability": "={{ $('ParseAgentResponse').item.json.profile.disability }}",
+            "opt_in_notifications": "={{ $('ParseAgentResponse').item.json.profile.opt_in_notifications }}",
+            "last_updated": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "age",
+              "displayName": "age",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "income",
+              "displayName": "income",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "occupation",
+              "displayName": "occupation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "state",
+              "displayName": "state",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "caste_category",
+              "displayName": "caste_category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "gender",
+              "displayName": "gender",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "disability",
+              "displayName": "disability",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "opt_in_notifications",
+              "displayName": "opt_in_notifications",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3120,
+        -400
+      ],
+      "id": "212297eb-b872-4483-abb2-778a4c422c25",
+      "name": "AppendToUserProfiles",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "E4RWTmcckSDcqzUR",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AppendUserMessage",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheet": {
+      "main": [
+        [
+          {
+            "node": "Filtering",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "GetAllSchemes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "FollowUpQuestion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FollowUpQuestion": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GetAllSchemes": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AgentBrain": {
+      "main": [
+        [
+          {
+            "node": "ParseAgentResponse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MatchingAgent": {
+      "main": [
+        [
+          {
+            "node": "SendMatchedSchemes",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AppendToUserProfiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ParseAgentResponse": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BuildMessageHistory": {
+      "main": [
+        [
+          {
+            "node": "AgentBrain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SendMatchedSchemes": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtering": {
+      "main": [
+        [
+          {
+            "node": "CheckAlreadyMatched",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "MatchingAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CheckAlreadyMatched": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "SendAlreadyMatched",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BuildMessageHistory",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "212fab70-2ea8-4688-826f-b67d623bf0ef",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6838c196eda4497b25b40c941ae8867f4fb457f57035226f3f0f803e4d6c7e15"
+  },
+  "nodeGroups": [],
+  "id": "BBzMOE029GoHDmZE",
+  "tags": []
+}

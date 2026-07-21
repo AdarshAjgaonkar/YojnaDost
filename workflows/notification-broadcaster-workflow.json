@@ -1,0 +1,383 @@
+{
+  "name": "NotificationBroadcaster",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "unit": "minutes"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_URL_HERE",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Schemes",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        80
+      ],
+      "id": "94baa640-6059-464e-86ad-79490b137436",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "8veResBnNrl0RFOi",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_URL_HERE",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1918296618,
+          "mode": "list",
+          "cachedResultName": "UserProfiles",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "opt_in_notifications",
+              "lookupValue": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        80
+      ],
+      "id": "709440c5-43c2-43d9-acc2-88adff613541",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "E4RWTmcckSDcqzUR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        448,
+        80
+      ],
+      "id": "bd8854e2-c5dd-48e5-9f61-66b3da016ce4",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "const profile = $json; // current user profile from Loop Over Items\nconst scheme = $('Google Sheets Trigger').first().json; // the newly added scheme\n\nfunction isEligible(profile, scheme) {\n  const incomeCap = Number(scheme.income_cap_annual);\n  if (profile.age < scheme.min_age || profile.age > scheme.max_age) return false;\n  if (!isNaN(incomeCap) && profile.income > incomeCap) return false;\n  if (scheme.occupation_eligible !== \"Any\" &&\n      !scheme.occupation_eligible.includes(profile.occupation)) return false;\n  if (scheme.state_eligible !== \"All States\" &&\n      scheme.state_eligible !== profile.state) return false;\n  if (scheme.caste_category !== \"Any\" &&\n      !scheme.caste_category.includes(profile.caste_category)) return false;\n  if (scheme.gender_eligible !== \"Any\" &&\n      scheme.gender_eligible !== profile.gender) return false;\n  if (scheme.disability_required === true && !profile.disability) return false;\n  return true;\n}\n\nconst eligible = isEligible(profile, scheme);\n\nreturn [{ json: { ...profile, eligible, scheme_id: scheme.scheme_id, scheme_name: scheme.scheme_name, scheme_data: scheme } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        128
+      ],
+      "id": "784e70bb-2041-4caf-b4c3-a0ff4dbf7ed3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f9aee4af-a56f-4e18-83f8-8b13bd5205cb",
+              "leftValue": "={{ $json.eligible }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        912,
+        128
+      ],
+      "id": "66f41312-b624-4da1-aade-31c476d83b43",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Code in JavaScript').item.json.chat_id }}",
+        "text": "={{ $json.choices[0].message.content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1408,
+        32
+      ],
+      "id": "b4b3ecca-e3ac-4a6e-b837-5599dc448e23",
+      "name": "Send a text message",
+      "webhookId": "381dc3fe-e4cb-4833-a583-572cf8c0e616",
+      "credentials": {
+        "telegramApi": {
+          "id": "gVvgBH83BxOQqjrO",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SHEET_URL_HERE",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 257698015,
+          "mode": "list",
+          "cachedResultName": "NotificationLog",
+          "cachedResultUrl": "YOUR_SHEET_URL_HERE"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $('Loop Over Items').item.json.chat_id }}",
+            "scheme_id": "={{ $('Code in JavaScript').item.json.scheme_id }}",
+            "sent_timestamp": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "log_id",
+              "displayName": "log_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "scheme_id",
+              "displayName": "scheme_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sent_timestamp",
+              "displayName": "sent_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1632,
+        112
+      ],
+      "id": "f4511a17-5653-4768-a26b-35d1fcbc5359",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "E4RWTmcckSDcqzUR",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "BEARER YOUR_GROQ_API_KEY_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: \"llama-3.3-70b-versatile\", max_tokens: 300, temperature: 0.5, messages: [ { role: \"system\", content: \"You are writing a short notification alert. A new government scheme has been added. Write a 2-3 sentence friendly alert telling the user about it and why they may qualify. End with a message telling the user to click on the scheme's link for more details.\" }, { role: \"user\", content: \"Scheme details: \" + JSON.stringify($json.scheme_data) } ] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1184,
+        32
+      ],
+      "id": "9b03a23e-82ce-4ffb-92b8-90318f9f8695",
+      "name": "NotificationAgent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "NotificationAgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NotificationAgent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4c37a7a0-cbcd-4d15-94cf-81a9848c9670",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "6838c196eda4497b25b40c941ae8867f4fb457f57035226f3f0f803e4d6c7e15"
+  },
+  "nodeGroups": [],
+  "id": "pNuTw9uDopbanghH",
+  "tags": []
+}
