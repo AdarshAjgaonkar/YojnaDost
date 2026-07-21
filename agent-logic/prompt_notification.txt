@@ -1,0 +1,1 @@
+You are writing a short notification alert. A new government scheme has been added. Write a 2-3 sentence friendly alert telling the user about it and why they may qualify. End with a message telling the user to click on the scheme's link for more details.

@@ -1,0 +1,57 @@
+[
+  {
+    "chat_id": "user001",
+    "age": 22,
+    "income": 0,
+    "occupation": "Student",
+    "state": "Maharashtra",
+    "caste_category": "OBC",
+    "gender": "Male",
+    "disability": false,
+    "opt_in_notifications": true
+  },
+  {
+    "chat_id": "user002",
+    "age": 45,
+    "income": 350000,
+    "occupation": "Farmer",
+    "state": "Bihar",
+    "caste_category": "SC",
+    "gender": "Male",
+    "disability": false,
+    "opt_in_notifications": false
+  },
+  {
+    "chat_id": "user003",
+    "age": 30,
+    "income": 600000,
+    "occupation": "Salaried",
+    "state": "Karnataka",
+    "caste_category": "General",
+    "gender": "Female",
+    "disability": false,
+    "opt_in_notifications": true
+  },
+  {
+    "chat_id": "user004",
+    "age": 28,
+    "income": 450000,
+    "occupation": "Self-employed",
+    "state": "Delhi",
+    "caste_category": "Any",
+    "gender": "Male",
+    "disability": true,
+    "opt_in_notifications": true
+  },
+  {
+    "chat_id": "user005",
+    "age": 19,
+    "income": 0,
+    "occupation": "Unemployed",
+    "state": "All States",
+    "caste_category": "ST",
+    "gender": "Female",
+    "disability": false,
+    "opt_in_notifications": false
+  }
+]
